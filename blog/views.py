@@ -43,9 +43,9 @@ class BlogUpdateView(UpdateView):
 class BlogDeleteView(DeleteView):
     model = BlogPost
     template_name = 'blog/blog_confirm_delete.html'
-    success_url = reverse_lazy('blog:blog_list')
+
+    def get_success_url(self):
+        return reverse_lazy('blog:post_detail', args=[self.object.pk])
 
 
-from django.shortcuts import render
 
-# Create your views here.
