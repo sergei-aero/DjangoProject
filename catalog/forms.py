@@ -46,3 +46,25 @@ class ProductForm(forms.ModelForm):
             raise forms.ValidationError('Цена не может быть отрицательной.')
         return price
 
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image:
+            # Проверка размера (не более 5 МБ = 5 * 1024 * 1024 байт)
+            if image.size > 5 * 1024 * 1024:
+                raise forms.ValidationError('Размер изображения не должен превышать 5 МБ.')
+
+            import os
+            ext = os.path.splitext(image.name)[1].lower()
+            if ext not in ['.jpg', '.jpeg', '.png']:
+                raise forms.ValidationError('Допустимые форматы: JPEG, PNG.')
+
+            # Дополнительная проверка через Pillow (надёжнее)
+            try:
+                img = Image.open(image)
+                if img.format not in ['JPEG', 'PNG']:
+                    raise forms.ValidationError('Файл должен быть изображением в формате JPEG или PNG.')
+            except Exception:
+                raise forms.ValidationError('Некорректный файл изображения.')
+
+        return image
+
