@@ -1,5 +1,7 @@
+from PIL import Image
 from django import forms
 from .models import Product
+from .forms_mixin import StyleFormMixin
 
 
 FORBIDDEN_WORDS = [
@@ -7,18 +9,10 @@ FORBIDDEN_WORDS = [
     'дешево', 'бесплатно', 'обман', 'полиция', 'радар'
 ]
 
-class ProductForm(forms.ModelForm):
+class ProductForm(StyleFormMixin, forms.ModelForm):
     class Meta:
         model = Product
         fields = ('name', 'description', 'image', 'category', 'price')
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field_name, field in self.fields.items():
-            if field_name != 'image':
-                field.widget.attrs.update({'class': 'form-control'})
-            else:
-                field.widget.attrs.update({'class': 'form-control-file'})
 
     def clean_name(self):
         """Валидация названия продукта на наличие запрещённых слов"""
@@ -60,9 +54,9 @@ class ProductForm(forms.ModelForm):
 
             # Дополнительная проверка через Pillow (надёжнее)
             try:
-                img = Image.open(image)
-                if img.format not in ['JPEG', 'PNG']:
-                    raise forms.ValidationError('Файл должен быть изображением в формате JPEG или PNG.')
+                with Image.open(image) as img:
+                    if img.format not in ['JPEG', 'PNG']:
+                        raise forms.ValidationError('Файл должен быть изображением в формате JPEG или PNG.')
             except Exception:
                 raise forms.ValidationError('Некорректный файл изображения.')
 
