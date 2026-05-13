@@ -9,6 +9,7 @@ urlpatterns = [
     path('catalog/', include('catalog.urls', namespace='catalog')),
     path('', RedirectView.as_view(url='catalog/', permanent=False), name='home'),
     path('blog/', include('blog.urls', namespace='blog')),
+    path('users/', include('users.urls', namespace='users')),
 ]
 
 if settings.DEBUG:
