@@ -18,3 +18,14 @@
     </div>
 </div>
 {% endblock %}
+{% if perms.blog.add_blogpost %}
+    <a href="{% url 'blog:post_create' %}" class="btn btn-primary">Создать запись</a>
+{% endif %}
+
+{% if perms.blog.change_blogpost %}
+    <a href="{% url 'blog:post_update' post.pk %}" class="btn btn-warning">Редактировать</a>
+{% endif %}
+
+{% if perms.blog.delete_blogpost %}
+    <a href="{% url 'blog:post_delete' post.pk %}" class="btn btn-danger">Удалить</a>
+{% endif %}

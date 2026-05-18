@@ -26,3 +26,15 @@
     </div>
 </div>
 {% endblock %}
+{% if user == product.owner %}
+    <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-warning">Редактировать</a>
+{% endif %}
+{% if user == product.owner or perms.catalog.can_unpublish_product %}
+    <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-danger">Удалить</a>
+{% endif %}
+{% if perms.catalog.can_unpublish_product and product.is_published %}
+    <form action="{% url 'catalog:product_unpublish' product.pk %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary">Снять с публикации</button>
+    </form>
+{% endif %}
