@@ -2,10 +2,13 @@ from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required
 from django.views.decorators.http import require_POST
+from django.core.cache import cache
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from .models import Product
+from .models import Product, Category
 from .forms import ProductForm
+from .services import get_products_by_category
+
 
 class ProductListView(ListView):
     model = Product
@@ -50,6 +53,25 @@ class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         if user.has_perm('catalog.can_unpublish_product'):  # или проверка группы
             return True
         return False
+
+class CategoryProductsView(ListView):
+    template_name = 'catalog/category_products.html'
+    context_object_name = 'products'
+    paginate_by = 9  # опционально
+
+    def get_queryset(self):
+        self.category = Category.objects.get(pk=self.kwargs['pk'])
+        cache_key = f'products_category_{self.category.pk}_published'
+        queryset = cache.get(cache_key)
+        if queryset is None:
+            queryset = list(get_products_by_category(self.category.pk))  # материализуем
+            cache.set(cache_key, queryset, 60 * 10)  # 10 минут
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['category'] = self.category
+        return context
 
 class ContactsView(TemplateView):
     template_name = 'catalog/contacts.html'
